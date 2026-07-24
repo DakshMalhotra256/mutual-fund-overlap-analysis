@@ -1,19 +1,23 @@
 # Indian Mutual Fund Portfolio Overlap Analysis
 
-End-to-end analysis of portfolio overlap and concentration risk across **45 top Indian equity mutual funds** — from raw scraping to SQL analysis to an interactive Power BI dashboard.
+End-to-end analysis of portfolio overlap and concentration risk across **45 top Indian equity
+mutual funds** — from raw scraping to pandas EDA, SQL analysis, an interactive Power BI
+dashboard, and a REST API that scores any fund portfolio for diversification.
 
-Millions of Indian investors hold 3–5 mutual funds thinking they are diversified, but most funds hold the same stocks. This project quantifies that hidden overlap and surfaces the structural reasons behind it.
+Millions of Indian investors hold 3–5 mutual funds thinking they are diversified, but most
+funds hold the same stocks. This project quantifies that hidden overlap and surfaces the
+structural reasons behind it.
 
 ---
 
 ## What's in this repo
 
-This repo combines two previously separate projects into one place:
-
 | Layer | What it does | Folder |
 |-------|--------------|--------|
-| **SQL Analysis** | 19 SQL queries on a SQLite database — overlap, concentration, sector exposure, optimal portfolio construction. Built in a Jupyter notebook. | [`analysis/`](analysis/) |
+| **Python EDA** | pandas + seaborn exploration: data quality, the 45×45 overlap matrix, sector tilts, breadth-vs-concentration. | [`analysis/eda.ipynb`](analysis/eda.ipynb) |
+| **SQL Analysis** | 19 SQL queries on a SQLite database — overlap, concentration, sector exposure, optimal portfolio construction. | [`analysis/mutual_fund_overlap_analysis.ipynb`](analysis/mutual_fund_overlap_analysis.ipynb) |
 | **Power BI Dashboard** | 4-page interactive dashboard with DAX measures, cross-filtered visuals, and a diversification scatter plot. | [`dashboard/`](dashboard/) |
+| **REST API** | FastAPI service: portfolio X-ray, 0–100 diversification score, smart-switch recommendations, JWT auth, saved portfolios. | [`api/`](api/) |
 | **Data** | Scraped holdings (CSV), SQLite database, and fund URL reference. | [`data/`](data/) |
 
 ---
@@ -22,11 +26,7 @@ This repo combines two previously separate projects into one place:
 
 - **Source:** Scraped from [Moneycontrol.com](https://www.moneycontrol.com) (publicly available portfolio holdings) using Python + BeautifulSoup
 - **Funds Analyzed:** 45 (top by AUM across categories)
-  - Large Cap: 10
-  - Mid Cap: 10
-  - Small Cap: 10
-  - Flexi Cap: 10
-  - Index Funds: 5
+  - Large Cap: 10 | Mid Cap: 10 | Small Cap: 10 | Flexi Cap: 10 | Index: 5
 - **Total Holdings:** 3,421 stock entries across 827 unique stocks
 - **Data as of:** February/March 2026
 
@@ -39,15 +39,27 @@ This repo combines two previously separate projects into one place:
 3. **Small cap funds are the most unique** — only 12% average overlap with 1000+ stocks to choose from.
 4. **ICICI Bank appears in 30/45 funds, HDFC Bank in 29/45** — massive hidden banking concentration.
 5. **Eternal Ltd. (Zomato) is the most widely held stock** — present in 32 out of 45 funds.
-6. **Parag Parikh Flexi Cap is the most unique fund** — foreign holdings ensure near-zero overlap with domestic funds.
-7. **Best diversification combo:** Small Cap + Large Cap — only 4–5% overlap.
-8. **Flexi Cap funds aren't really "flexi"** — 7.5× more weight in large caps vs small caps.
-9. **Concentration varies wildly** — HDFC Sensex needs just 6 stocks to reach 50% of portfolio; Nippon Small Cap needs 59.
-10. **Index funds have zero small cap exposure** — investors relying solely on index funds completely miss the small cap segment.
+6. **But crowding is asymmetric** — ~60% of the 827 stocks are held by exactly one fund; overlap is a large-cap phenomenon.
+7. **Parag Parikh Flexi Cap is the most unique fund** — foreign holdings ensure near-zero overlap with domestic funds.
+8. **Best diversification combo:** Small Cap + Large Cap — only 4–5% overlap.
+9. **Flexi Cap funds aren't really "flexi"** — 7.5× more weight in large caps vs small caps.
+10. **Breadth is not diversification** — several funds hold 60+ stocks while parking 40%+ of the portfolio in their top 5 bets.
 
 ---
 
-## SQL Analysis (`analysis/`)
+## Python EDA (`analysis/eda.ipynb`)
+
+pandas + seaborn exploration that runs before any SQL:
+
+- Data quality: nulls, duplicates, per-fund equity coverage (85–100% for most funds)
+- Portfolio breadth by category (index funds hold ~50 stocks, small caps up to 100+)
+- Holding weight distributions and the 10 biggest single positions
+- Stock popularity: crowded large caps vs the ~60% of stocks held by only one fund
+- The full 45×45 weighted overlap matrix, computed vectorized in NumPy, plus the
+  category-level average overlap heatmap
+- Sector tilts per category and the breadth-vs-concentration scatter
+
+## SQL Analysis (`analysis/mutual_fund_overlap_analysis.ipynb`)
 
 19 SQL queries covering:
 
@@ -58,16 +70,13 @@ This repo combines two previously separate projects into one place:
 - Fund concentration and diversification scoring
 - Optimal 5-fund portfolio recommendation
 - Hidden-gem stocks with high conviction but low popularity
-- Market cap distribution across fund categories
 - Window functions (RANK, cumulative SUM) for holdings ranking and concentration
-
-Open [`analysis/mutual_fund_overlap_analysis.ipynb`](analysis/mutual_fund_overlap_analysis.ipynb) in Jupyter to reproduce.
-
----
 
 ## Power BI Dashboard (`dashboard/`)
 
-Four interactive pages. Screenshots below; the full `.pbix` file is in [`dashboard/MF_Overlap_Dashboard.pbix`](dashboard/MF_Overlap_Dashboard.pbix) and a static PDF export in [`dashboard/dashboard_preview.pdf`](dashboard/dashboard_preview.pdf).
+Four interactive pages. Screenshots below; the full `.pbix` file is in
+[`dashboard/MF_Overlap_Dashboard.pbix`](dashboard/MF_Overlap_Dashboard.pbix) and a static
+PDF export in [`dashboard/dashboard_preview.pdf`](dashboard/dashboard_preview.pdf).
 
 ### Page 1 — Overview
 ![Overview](dashboard/screenshots/page1_overview.png)
@@ -99,7 +108,7 @@ Four interactive pages. Screenshots below; the full `.pbix` file is in [`dashboa
 - Category slicer for head-to-head comparison
 - Grouped bar of average sector allocation by fund type
 - Fund stats matrix with heatmap conditional formatting
-- **Diversification vs Concentration scatter plot** — x: number of stocks held, y: top-5 holdings weight. Reveals that holding many stocks doesn't guarantee diversification.
+- **Diversification vs Concentration scatter plot** — x: number of stocks held, y: top-5 holdings weight
 
 ### DAX Measures
 
@@ -113,6 +122,33 @@ Four interactive pages. Screenshots below; the full `.pbix` file is in [`dashboa
 | Stock Count | `DISTINCTCOUNT(table[stock_name])` | Scatter X-axis |
 | Top5 Concentration | `SUMX(TOPN(5, SUMMARIZE(...)), [hp])` | Scatter Y-axis |
 
+## REST API (`api/`)
+
+FastAPI service over the same dataset. Runs on SQLite out of the box (no setup);
+point `DATABASE_URL` at MySQL for a server database.
+
+- `GET /api/funds/` — list/search funds; `GET /api/funds/{id}` — fund with holdings
+- `GET /api/analysis/overlap?fund1_id=X&fund2_id=Y` — weighted overlap between two funds
+- `GET /api/analysis/most-held-stocks`, `GET /api/analysis/sectors` — universe-level concentration
+- `POST /api/portfolio/xray` — true exposure of a multi-fund portfolio: duplicate holdings, sector and market-cap breakdown
+- `POST /api/portfolio/score` — 0–100 diversification score (penalties for overlap, concentration, sector dominance; bonus for category mix)
+- `POST /api/portfolio/smart-switch` — finds the weakest fund and recommends replacements
+- `POST /api/portfolio/recommend` — SIP allocation by risk profile
+- `POST /api/auth/signup`, `/login` — JWT auth (bcrypt-hashed passwords); save/retrieve/delete portfolios on protected routes
+
+Scoring: starts at 100 — overlap penalty (0–30), concentration penalty (0–25), sector
+penalty (0–25), category-mix bonus (0–20), clamped to 0–100. Three large-cap funds
+typically score in the 40s; a Large + Mid + Small mix lands in the 80s.
+
+```bash
+cd api
+pip install -r requirements.txt
+python seed.py                          # loads data/mutual_fund_holdings.csv into SQLite
+python -m uvicorn app.main:app --port 8080
+# interactive docs: http://127.0.0.1:8080/docs
+python -m pytest tests/                 # 7 tests: endpoints, scoring sanity, auth flow
+```
+
 ---
 
 ## Project Structure
@@ -120,15 +156,21 @@ Four interactive pages. Screenshots below; the full `.pbix` file is in [`dashboa
 ```
 .
 ├── analysis/
-│   └── mutual_fund_overlap_analysis.ipynb   # Main SQL analysis notebook
+│   ├── eda.ipynb                            # pandas/seaborn EDA
+│   └── mutual_fund_overlap_analysis.ipynb   # SQL analysis notebook
+├── api/
+│   ├── app/                                 # FastAPI app (routers, models, auth)
+│   ├── tests/                               # pytest suite
+│   ├── seed.py                              # CSV -> database loader
+│   └── requirements.txt
 ├── dashboard/
 │   ├── MF_Overlap_Dashboard.pbix            # Power BI dashboard
 │   ├── dashboard_preview.pdf                # Static PDF export
-│   └── screenshots/                         # Page previews
+│   └── screenshots/
 ├── data/
 │   ├── mutual_fund_holdings.csv             # Raw scraped holdings
-│   ├── mutual_fund_holdings_dashboard.csv   # Dashboard-ready dataset
-│   ├── mutual_fund_overlap.db               # SQLite database
+│   ├── mutual_fund_holdings_dashboard.csv   # Dashboard-ready dataset (adds fund_category)
+│   ├── mutual_fund_overlap.db               # SQLite database (SQL notebook)
 │   └── funds_list.json                      # Fund URL reference
 └── README.md
 ```
@@ -137,25 +179,22 @@ Four interactive pages. Screenshots below; the full `.pbix` file is in [`dashboa
 
 ## How to Run
 
-### SQL Analysis
-1. Clone this repo.
-2. Open [`analysis/mutual_fund_overlap_analysis.ipynb`](analysis/mutual_fund_overlap_analysis.ipynb) in Jupyter.
-3. Run all cells — the notebook scrapes fresh data, builds the database, and runs all 19 analyses.
-4. Requires: `pip install requests beautifulsoup4 pandas`
+**EDA:** open `analysis/eda.ipynb` in Jupyter and run all cells. Requires `pandas`, `seaborn`, `matplotlib`.
 
-### Power BI Dashboard
-1. Download [`dashboard/MF_Overlap_Dashboard.pbix`](dashboard/MF_Overlap_Dashboard.pbix).
-2. Open in [Power BI Desktop](https://www.microsoft.com/en-us/power-platform/products/power-bi/desktop) (free, Windows).
-3. If you only want a static view, open [`dashboard/dashboard_preview.pdf`](dashboard/dashboard_preview.pdf).
+**SQL Analysis:** open `analysis/mutual_fund_overlap_analysis.ipynb` — the notebook scrapes fresh data, builds the database, and runs all 19 analyses. Requires `requests`, `beautifulsoup4`, `pandas`.
+
+**Dashboard:** download `dashboard/MF_Overlap_Dashboard.pbix` and open in [Power BI Desktop](https://www.microsoft.com/en-us/power-platform/products/power-bi/desktop) (free, Windows). Static PDF included otherwise.
+
+**API:** see the API section above.
 
 ---
 
 ## Tech Stack
 
-- **Python** — `requests`, `BeautifulSoup` (scraping), `pandas` (cleaning)
-- **SQL (SQLite)** — JOINs, CTEs, window functions, self-joins, aggregations
-- **Power BI Desktop** — visuals, slicers, cross-filters
-- **DAX** — custom measures for KPIs and scatter metrics
+- **Python** — pandas, NumPy, seaborn/matplotlib (EDA), requests + BeautifulSoup (scraping)
+- **SQL (SQLite / MySQL)** — JOINs, CTEs, window functions, self-joins, aggregations
+- **FastAPI** — REST API with SQLAlchemy ORM, Pydantic schemas, JWT auth, pytest
+- **Power BI Desktop + DAX** — interactive dashboard
 
 ---
 
@@ -165,7 +204,6 @@ Four interactive pages. Screenshots below; the full `.pbix` file is in [`dashboa
 - Equity holdings only — debt, cash, and foreign equity excluded.
 - Moneycontrol data may have minor discrepancies vs official AMC disclosures.
 - Fund category classification is based on fund name keywords, not official SEBI categorization.
-- "Other" market cap bucket includes foreign and uncategorized stocks.
 - The Power BI dashboard requires Power BI Desktop (Windows) to interact with — PDF provided otherwise.
 
 ---

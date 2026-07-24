@@ -17,3 +17,7 @@ Thumbs.db
 # Power BI
 *.pbix.tmp
 *~$*.pbix
+
+# API runtime
+data/mutual_fund_api.db
+.env
