@@ -41,7 +41,7 @@ structural reasons behind it.
 5. **Eternal Ltd. (Zomato) is the most widely held stock** — present in 32 out of 45 funds.
 6. **But crowding is asymmetric** — ~60% of the 827 stocks are held by exactly one fund; overlap is a large-cap phenomenon.
 7. **Parag Parikh Flexi Cap is the most unique fund** — foreign holdings ensure near-zero overlap with domestic funds.
-8. **Best diversification combo:** Small Cap + Large Cap — only 4–5% overlap.
+8. **Best diversification combos:** mixing across categories drops overlap to 4–5% — Index + Mid Cap is lowest at 4.3%, with Flexi Cap + Small Cap (4.9%) and Large Cap + Small Cap (5.1%) close behind.
 9. **Flexi Cap funds aren't really "flexi"** — 7.5× more weight in large caps vs small caps.
 10. **Breadth is not diversification** — several funds hold 60+ stocks while parking 40%+ of the portfolio in their top 5 bets.
 
