@@ -14,6 +14,7 @@ structural reasons behind it.
 
 | Layer | What it does | Folder |
 |-------|--------------|--------|
+| **Scraper** | requests + BeautifulSoup acquisition of all 45 fund portfolios. Archival — see [Dataset](#dataset). | [`scrape.py`](scrape.py) |
 | **Python EDA** | pandas + seaborn exploration: data quality, the 45×45 overlap matrix, sector tilts, breadth-vs-concentration. | [`analysis/eda.ipynb`](analysis/eda.ipynb) |
 | **SQL Analysis** | 19 SQL queries on a SQLite database — overlap, concentration, sector exposure, optimal portfolio construction. | [`analysis/mutual_fund_overlap_analysis.ipynb`](analysis/mutual_fund_overlap_analysis.ipynb) |
 | **Power BI Dashboard** | 4-page interactive dashboard with DAX measures, cross-filtered visuals, and a diversification scatter plot. | [`dashboard/`](dashboard/) |
@@ -29,6 +30,18 @@ structural reasons behind it.
   - Large Cap: 10 | Mid Cap: 10 | Small Cap: 10 | Flexi Cap: 10 | Index: 5
 - **Total Holdings:** 3,421 stock entries across 827 unique stocks
 - **Data as of:** February/March 2026
+
+**The dataset is a frozen snapshot, and everything here reads it rather than the live site.**
+[`scrape.py`](scrape.py) captured it once in Feb/Mar 2026 and wrote
+`data/mutual_fund_holdings.csv` and `data/mutual_fund_overlap.db`, both committed to this
+repo. Moneycontrol has since changed its portfolio-holdings URLs, so the scraper no longer
+runs against the live site and is kept as the record of how the data was acquired.
+
+Freezing it is deliberate rather than a workaround: fund holdings change every month, so a
+live re-scrape would silently change every number in this README, the notebooks and the
+dashboard, and they would stop agreeing with each other. Separating acquisition from
+analysis is what keeps the analysis reproducible — clone the repo and every notebook runs
+top to bottom with no network access.
 
 ---
 
@@ -155,6 +168,7 @@ python -m pytest tests/                 # 7 tests: endpoints, scoring sanity, au
 
 ```
 .
+├── scrape.py                                # Moneycontrol scraper (archival, ran once)
 ├── analysis/
 │   ├── eda.ipynb                            # pandas/seaborn EDA
 │   └── mutual_fund_overlap_analysis.ipynb   # SQL analysis notebook
@@ -171,7 +185,7 @@ python -m pytest tests/                 # 7 tests: endpoints, scoring sanity, au
 │   ├── mutual_fund_holdings.csv             # Raw scraped holdings
 │   ├── mutual_fund_holdings_dashboard.csv   # Dashboard-ready dataset (adds fund_category)
 │   ├── mutual_fund_overlap.db               # SQLite database (SQL notebook)
-│   └── funds_list.json                      # Fund URL reference
+│   └── funds_list.json                      # Fund URLs — input to scrape.py
 └── README.md
 ```
 
@@ -181,7 +195,9 @@ python -m pytest tests/                 # 7 tests: endpoints, scoring sanity, au
 
 **EDA:** open `analysis/eda.ipynb` in Jupyter and run all cells. Requires `pandas`, `seaborn`, `matplotlib`.
 
-**SQL Analysis:** open `analysis/mutual_fund_overlap_analysis.ipynb` — the notebook scrapes fresh data, builds the database, and runs all 19 analyses. Requires `requests`, `beautifulsoup4`, `pandas`.
+**SQL Analysis:** open `analysis/mutual_fund_overlap_analysis.ipynb` and run all cells — it queries the committed `data/mutual_fund_overlap.db` and runs all 19 analyses. Requires `pandas` only; no network access.
+
+**Scraper:** `scrape.py` is the archival acquisition step and does not need to be run — its output is committed under `data/`. Moneycontrol has since changed its URLs, so it will not fetch anything today. See [Dataset](#dataset).
 
 **Dashboard:** download `dashboard/MF_Overlap_Dashboard.pbix` and open in [Power BI Desktop](https://www.microsoft.com/en-us/power-platform/products/power-bi/desktop) (free, Windows). Static PDF included otherwise.
 
