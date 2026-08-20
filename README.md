@@ -47,14 +47,14 @@ top to bottom with no network access.
 
 ## Key Findings
 
-1. **Index funds share ~100% overlap** — holding multiple Nifty 50 funds is pointless.
+1. **Nifty 50 index funds are ~100% identical** — 99.9% average overlap between them, so holding more than one is pointless. Across all index funds the average is 93%, pulled down by Sensex trackers, which hold 30 stocks rather than 50.
 2. **Large cap funds overlap 57% on average** — SEBI's 80% mandate in ~100 stocks leaves little room for differentiation.
 3. **Small cap funds are the most unique** — only 12% average overlap with 1000+ stocks to choose from.
 4. **ICICI Bank appears in 30/45 funds, HDFC Bank in 29/45** — massive hidden banking concentration.
 5. **Eternal Ltd. (Zomato) is the most widely held stock** — present in 32 out of 45 funds.
-6. **But crowding is asymmetric** — ~60% of the 827 stocks are held by exactly one fund; overlap is a large-cap phenomenon.
+6. **But crowding is asymmetric** — 287 of the 827 stocks (35%) are held by exactly one fund; overlap is a large-cap phenomenon.
 7. **Parag Parikh Flexi Cap is the most unique fund** — foreign holdings ensure near-zero overlap with domestic funds.
-8. **Best diversification combos:** mixing across categories drops overlap to 4–5% — Index + Mid Cap is lowest at 4.3%, with Flexi Cap + Small Cap (4.9%) and Large Cap + Small Cap (5.1%) close behind.
+8. **Best diversification combos:** mixing across categories drops overlap to about 4% — Index + Small Cap is lowest at 3.9%, then Index + Mid Cap (4.3%), Large Cap + Small Cap (4.4%) and Flexi Cap + Small Cap (4.7%). Averages include the 33 cross-category pairs that share no stocks at all.
 9. **Flexi Cap funds aren't really "flexi"** — 7.5× more weight in large caps vs small caps.
 10. **Breadth is not diversification** — several funds hold 60+ stocks while parking 40%+ of the portfolio in their top 5 bets.
 
