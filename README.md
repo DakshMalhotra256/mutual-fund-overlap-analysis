@@ -67,7 +67,7 @@ pandas + seaborn exploration that runs before any SQL:
 - Data quality: nulls, duplicates, per-fund equity coverage (85–100% for most funds)
 - Portfolio breadth by category (index funds hold ~50 stocks, small caps up to 100+)
 - Holding weight distributions and the 10 biggest single positions
-- Stock popularity: crowded large caps vs the ~60% of stocks held by only one fund
+- Stock popularity: crowded large caps vs the 35% of stocks held by only one fund
 - The full 45×45 weighted overlap matrix, computed vectorized in NumPy, plus the
   category-level average overlap heatmap
 - Sector tilts per category and the breadth-vs-concentration scatter
